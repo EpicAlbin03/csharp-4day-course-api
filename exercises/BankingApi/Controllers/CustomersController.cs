@@ -23,36 +23,36 @@ namespace BankingApi.Controllers
 
         // GET: api/Customers
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Branch>>> GetBranches()
+        public async Task<ActionResult<IEnumerable<Customer>>> GetCustomers()
         {
-            return await _context.Branches.ToListAsync();
+            return await _context.Customers.ToListAsync();
         }
 
         // GET: api/Customers/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Branch>> GetBranch(int id)
+        public async Task<ActionResult<Customer>> GetCustomer(int id)
         {
-            var branch = await _context.Branches.FindAsync(id);
+            var customer = await _context.Customers.FindAsync(id);
 
-            if (branch == null)
+            if (customer == null)
             {
                 return NotFound();
             }
 
-            return branch;
+            return customer;
         }
 
         // PUT: api/Customers/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutBranch(int id, Branch branch)
+        public async Task<IActionResult> PutCustomer(int id, Customer customer)
         {
-            if (id != branch.Id)
+            if (id != customer.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(branch).State = EntityState.Modified;
+            _context.Entry(customer).State = EntityState.Modified;
 
             try
             {
@@ -60,7 +60,7 @@ namespace BankingApi.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!BranchExists(id))
+                if (!CustomerExists(id))
                 {
                     return NotFound();
                 }
@@ -76,33 +76,33 @@ namespace BankingApi.Controllers
         // POST: api/Customers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Branch>> PostBranch(Branch branch)
+        public async Task<ActionResult<Customer>> PostCustomer(Customer customer)
         {
-            _context.Branches.Add(branch);
+            _context.Customers.Add(customer);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetBranch", new { id = branch.Id }, branch);
+            return CreatedAtAction("GetCustomer", new { id = customer.Id }, customer);
         }
 
         // DELETE: api/Customers/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteBranch(int id)
+        public async Task<IActionResult> DeleteCustomer(int id)
         {
-            var branch = await _context.Branches.FindAsync(id);
-            if (branch == null)
+            var customer = await _context.Customers.FindAsync(id);
+            if (customer == null)
             {
                 return NotFound();
             }
 
-            _context.Branches.Remove(branch);
+            _context.Customers.Remove(customer);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool BranchExists(int id)
+        private bool CustomerExists(int id)
         {
-            return _context.Branches.Any(e => e.Id == id);
+            return _context.Customers.Any(e => e.Id == id);
         }
     }
 }

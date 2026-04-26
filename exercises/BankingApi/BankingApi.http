@@ -1,6 +1,116 @@
 @BankingApi_HostAddress = http://localhost:5163
+@BankingApi_ProdHost = https://api.example.com
 
-GET {{BankingApi_HostAddress}}/weatherforecast/
+### ----- Production -----
+
+GET {{BankingApi_ProdHost}}/api/Accounts
 Accept: application/json
 
 ###
+
+### ----- Accounts -----
+
+GET {{BankingApi_HostAddress}}/api/Accounts
+Accept: application/json
+
+###
+
+GET {{BankingApi_HostAddress}}/api/Accounts/1
+Accept: application/json
+
+###
+
+POST {{BankingApi_HostAddress}}/api/Accounts
+Content-Type: application/json
+
+{
+  "accountNumber": "ACC-1000"
+}
+
+###
+
+PUT {{BankingApi_HostAddress}}/api/Accounts/1
+Content-Type: application/json
+
+{
+  "id": 1,
+  "accountNumber": "ACC-9999"
+}
+
+###
+
+DELETE {{BankingApi_HostAddress}}/api/Accounts/1
+
+###
+
+### ----- Branches -----
+
+GET {{BankingApi_HostAddress}}/api/Branches
+Accept: application/json
+
+###
+
+GET {{BankingApi_HostAddress}}/api/Branches/1
+Accept: application/json
+
+###
+
+POST {{BankingApi_HostAddress}}/api/Branches
+Content-Type: application/json
+
+{
+  "name": "London HQ",
+  "address": "1 Threadneedle St"
+}
+
+###
+
+PUT {{BankingApi_HostAddress}}/api/Branches/1
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "Manchester HQ",
+  "address": "12 King St"
+}
+
+###
+
+DELETE {{BankingApi_HostAddress}}/api/Branches/1
+
+###
+
+### ----- Customers -----
+
+GET {{BankingApi_HostAddress}}/api/Customers
+Accept: application/json
+
+###
+
+GET {{BankingApi_HostAddress}}/api/Customers/1
+Accept: application/json
+
+###
+
+POST {{BankingApi_HostAddress}}/api/Customers
+Content-Type: application/json
+
+{
+  "fullName": "John Doe",
+  "email": "john.doe@example.com"
+}
+
+###
+
+PUT {{BankingApi_HostAddress}}/api/Customers/1
+Content-Type: application/json
+
+{
+  "id": 1,
+  "fullName": "Jane Doe",
+  "email": "jane.doe@example.com"
+}
+
+###
+
+DELETE {{BankingApi_HostAddress}}/api/Customers/1
