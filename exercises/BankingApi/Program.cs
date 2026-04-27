@@ -11,15 +11,22 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+// builder.Services.AddDbContext<AppDbContext>(options =>
+//     options.UseInMemoryDatabase("BankingDb"));
+
+var connectionString = builder.Configuration.GetConnectionString("AppDb")
+                       ?? throw new InvalidOperationException("Connection string 'AppDb' is not configured.");
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseInMemoryDatabase("BankingDb"));
+    options.UseNpgsql(connectionString));
 
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.EnsureCreated();
+    // db.Database.EnsureCreated();
+    db.Database.Migrate();
     DbSeeder.Seed(db);
 }
 
