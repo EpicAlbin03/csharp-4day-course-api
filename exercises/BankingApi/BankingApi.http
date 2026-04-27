@@ -15,7 +15,42 @@ Accept: application/json
 
 ###
 
+GET {{BankingApi_HostAddress}}/api/Accounts?include=transactions
+Accept: application/json
+
+###
+
+GET {{BankingApi_HostAddress}}/api/Accounts?include=transactions&type=Credit
+Accept: application/json
+
+###
+
 GET {{BankingApi_HostAddress}}/api/Accounts/1
+Accept: application/json
+
+###
+
+GET {{BankingApi_HostAddress}}/api/Accounts/1?include=transactions
+Accept: application/json
+
+###
+
+GET {{BankingApi_HostAddress}}/api/Accounts/1?include=transactions,branch
+Accept: application/json
+
+###
+
+GET {{BankingApi_HostAddress}}/api/Accounts/1?include=TRANSACTIONS
+Accept: application/json
+
+###
+
+GET {{BankingApi_HostAddress}}/api/Accounts/1?include=transactions&type=Credit
+Accept: application/json
+
+###
+
+GET {{BankingApi_HostAddress}}/api/Accounts/1?include=transactions&type=Debit
 Accept: application/json
 
 ###
@@ -119,6 +154,31 @@ DELETE {{BankingApi_HostAddress}}/api/Customers/1
 ### ----- Transactions -----
 
 GET {{BankingApi_HostAddress}}/api/Transactions
+Accept: application/json
+
+###
+
+GET {{BankingApi_HostAddress}}/api/Transactions?minAmount=500
+Accept: application/json
+
+###
+
+GET {{BankingApi_HostAddress}}/api/Transactions?minAmount=1200
+Accept: application/json
+
+###
+
+GET {{BankingApi_HostAddress}}/api/Transactions?since=2026-01-01
+Accept: application/json
+
+###
+
+GET {{BankingApi_HostAddress}}/api/Transactions?since=2026-12-01
+Accept: application/json
+
+###
+
+GET {{BankingApi_HostAddress}}/api/Transactions?since=2026-01-01&minAmount=500
 Accept: application/json
 
 ###

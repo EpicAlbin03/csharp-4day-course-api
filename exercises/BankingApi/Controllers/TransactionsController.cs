@@ -23,16 +23,50 @@ namespace BankingApi.Controllers
 
         // GET: api/Transactions
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Transaction>>> GetTransactions()
+        public async Task<ActionResult<IEnumerable<Transaction>>> GetTransactions([FromQuery] TransactionQuery query)
         {
-            return await _context.Transactions.ToListAsync();
+            var q = _context.Transactions.AsQueryable();
+
+            if (query.Type.HasValue)
+            {
+                q = q.Where(t => t.Type == query.Type.Value);
+            }
+
+            if (query.MinAmount.HasValue)
+            {
+                q = q.Where(t => t.Amount >= query.MinAmount.Value);
+            }
+
+            if (query.Since.HasValue)
+            {
+                q = q.Where(t => t.Timestamp >= query.Since.Value);
+            }
+
+            return await q.ToListAsync();
         }
 
         // GET: api/Transactions/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Transaction>> GetTransaction(int id)
+        public async Task<ActionResult<Transaction>> GetTransaction(int id, [FromQuery] TransactionQuery query)
         {
-            var transaction = await _context.Transactions.FindAsync(id);
+            var q = _context.Transactions.AsQueryable();
+
+            if (query.Type.HasValue)
+            {
+                q = q.Where(t => t.Type == query.Type.Value);
+            }
+
+            if (query.MinAmount.HasValue)
+            {
+                q = q.Where(t => t.Amount >= query.MinAmount.Value);
+            }
+
+            if (query.Since.HasValue)
+            {
+                q = q.Where(t => t.Timestamp >= query.Since.Value);
+            }
+
+            var transaction = await q.FirstOrDefaultAsync(t => t.Id == id);
 
             if (transaction == null)
             {
