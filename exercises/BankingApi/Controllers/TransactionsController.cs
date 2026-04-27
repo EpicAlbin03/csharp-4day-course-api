@@ -12,50 +12,47 @@ namespace BankingApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AccountsController : ControllerBase
+    public class TransactionsController : ControllerBase
     {
         private readonly AppDbContext _context;
 
-        public AccountsController(AppDbContext context)
+        public TransactionsController(AppDbContext context)
         {
             _context = context;
         }
 
-        // GET: api/Accounts
+        // GET: api/Transactions
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Account>>> GetAccounts()
+        public async Task<ActionResult<IEnumerable<Transaction>>> GetTransactions()
         {
-            return await _context.Accounts.ToListAsync();
+            return await _context.Transactions.ToListAsync();
         }
 
-        // GET: api/Accounts/5
+        // GET: api/Transactions/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Account>> GetAccount(int id)
+        public async Task<ActionResult<Transaction>> GetTransaction(int id)
         {
-            var account = await _context.Accounts
-                .Include(a => a.Transactions)
-                .Include(a => a.Branch)
-                .FirstOrDefaultAsync(a => a.Id == id);
+            var transaction = await _context.Transactions.FindAsync(id);
 
-            if (account == null)
+            if (transaction == null)
             {
                 return NotFound();
             }
 
-            return account;
+            return transaction;
         }
 
-        // PUT: api/Accounts/5
+        // PUT: api/Transactions/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutAccount(int id, Account account)
+        public async Task<IActionResult> PutTransaction(int id, Transaction transaction)
         {
-            if (id != account.Id)
+            if (id != transaction.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(account).State = EntityState.Modified;
+            _context.Entry(transaction).State = EntityState.Modified;
 
             try
             {
@@ -63,7 +60,7 @@ namespace BankingApi.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!AccountExists(id))
+                if (!TransactionExists(id))
                 {
                     return NotFound();
                 }
@@ -76,38 +73,36 @@ namespace BankingApi.Controllers
             return NoContent();
         }
 
-        // POST: api/Accounts
+        // POST: api/Transactions
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Account>> PostAccount(Account account)
+        public async Task<ActionResult<Transaction>> PostTransaction(Transaction transaction)
         {
-            account.AccountNumber = $"ACC-{_context.Accounts.Count() + 1000}";
-
-            _context.Accounts.Add(account);
+            _context.Transactions.Add(transaction);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetAccount", new { id = account.Id }, account);
+            return CreatedAtAction("GetTransaction", new { id = transaction.Id }, transaction);
         }
 
-        // DELETE: api/Accounts/5
+        // DELETE: api/Transactions/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAccount(int id)
+        public async Task<IActionResult> DeleteTransaction(int id)
         {
-            var account = await _context.Accounts.FindAsync(id);
-            if (account == null)
+            var transaction = await _context.Transactions.FindAsync(id);
+            if (transaction == null)
             {
                 return NotFound();
             }
 
-            _context.Accounts.Remove(account);
+            _context.Transactions.Remove(transaction);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool AccountExists(int id)
+        private bool TransactionExists(int id)
         {
-            return _context.Accounts.Any(e => e.Id == id);
+            return _context.Transactions.Any(e => e.Id == id);
         }
     }
 }

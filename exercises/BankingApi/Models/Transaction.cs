@@ -1,5 +1,7 @@
 namespace BankingApi.Models;
 
+using System.Text.Json.Serialization;
+
 public class Transaction
 {
     public int Id { get; set; }
@@ -14,5 +16,5 @@ public class Transaction
 
     public int AccountId { get; set; }
 
-    public Account? Account { get; set; }
+    [JsonIgnore] public Account? Account { get; set; }
 }

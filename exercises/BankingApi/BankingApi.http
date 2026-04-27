@@ -113,3 +113,17 @@ Content-Type: application/json
 ###
 
 DELETE {{BankingApi_HostAddress}}/api/Customers/1
+
+###
+
+### ----- Transactions -----
+
+GET {{BankingApi_HostAddress}}/api/Transactions
+Accept: application/json
+
+###
+
+GET {{BankingApi_HostAddress}}/api/Transactions/1
+Accept: application/json
+
+###
