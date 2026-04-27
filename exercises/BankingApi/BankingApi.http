@@ -24,7 +24,6 @@ POST {{BankingApi_HostAddress}}/api/Accounts
 Content-Type: application/json
 
 {
-  "accountNumber": "ACC-1000"
 }
 
 ###
