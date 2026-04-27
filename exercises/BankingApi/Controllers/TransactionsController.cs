@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BankingApi.Data;
@@ -21,12 +16,8 @@ namespace BankingApi.Controllers
             _context = context;
         }
 
-        // GET: api/Transactions
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Transaction>>> GetTransactions([FromQuery] TransactionQuery query)
+        private static IQueryable<Transaction> ApplyFilters(IQueryable<Transaction> q, TransactionQuery query)
         {
-            var q = _context.Transactions.AsQueryable();
-
             if (query.Type.HasValue)
             {
                 q = q.Where(t => t.Type == query.Type.Value);
@@ -41,6 +32,16 @@ namespace BankingApi.Controllers
             {
                 q = q.Where(t => t.Timestamp >= query.Since.Value);
             }
+
+            return q;
+        }
+
+        // GET: api/Transactions
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Transaction>>> GetTransactions([FromQuery] TransactionQuery query)
+        {
+            var q = _context.Transactions.AsQueryable();
+            q = ApplyFilters(q, query);
 
             return await q.ToListAsync();
         }
@@ -50,21 +51,7 @@ namespace BankingApi.Controllers
         public async Task<ActionResult<Transaction>> GetTransaction(int id, [FromQuery] TransactionQuery query)
         {
             var q = _context.Transactions.AsQueryable();
-
-            if (query.Type.HasValue)
-            {
-                q = q.Where(t => t.Type == query.Type.Value);
-            }
-
-            if (query.MinAmount.HasValue)
-            {
-                q = q.Where(t => t.Amount >= query.MinAmount.Value);
-            }
-
-            if (query.Since.HasValue)
-            {
-                q = q.Where(t => t.Timestamp >= query.Since.Value);
-            }
+            q = ApplyFilters(q, query);
 
             var transaction = await q.FirstOrDefaultAsync(t => t.Id == id);
 

@@ -25,6 +25,11 @@ Accept: application/json
 
 ###
 
+GET {{BankingApi_HostAddress}}/api/Accounts?include=transactions&type=Debit
+Accept: application/json
+
+###
+
 GET {{BankingApi_HostAddress}}/api/Accounts/1
 Accept: application/json
 

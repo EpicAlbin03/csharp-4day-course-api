@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BankingApi.Data;
@@ -27,13 +22,11 @@ namespace BankingApi.Controllers
                 : include.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                     .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        // GET: api/Accounts
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Account>>> GetAccounts([FromQuery] AccountQuery query)
+        private static IQueryable<Account> ApplyFilters(IQueryable<Account> q, AccountQuery query)
         {
-            var q = _context.Accounts.AsQueryable();
+            var includes = ParseInclude(query.Include);
 
-            if (ParseInclude(query.Include).Contains("transactions"))
+            if (includes.Contains("transactions"))
             {
                 if (query.Type.HasValue)
                 {
@@ -45,10 +38,20 @@ namespace BankingApi.Controllers
                 }
             }
 
-            if (ParseInclude(query.Include).Contains("branch"))
+            if (includes.Contains("branch"))
             {
                 q = q.Include(a => a.Branch);
             }
+
+            return q;
+        }
+
+        // GET: api/Accounts
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Account>>> GetAccounts([FromQuery] AccountQuery query)
+        {
+            var q = _context.Accounts.AsQueryable();
+            q = ApplyFilters(q, query);
 
             return await q.ToListAsync();
         }
@@ -58,23 +61,7 @@ namespace BankingApi.Controllers
         public async Task<ActionResult<Account>> GetAccount(int id, [FromQuery] AccountQuery query)
         {
             var q = _context.Accounts.AsQueryable();
-
-            if (ParseInclude(query.Include).Contains("transactions"))
-            {
-                if (query.Type.HasValue)
-                {
-                    q = q.Include(a => a.Transactions!.Where(t => t.Type == query.Type.Value));
-                }
-                else
-                {
-                    q = q.Include(a => a.Transactions);
-                }
-            }
-
-            if (ParseInclude(query.Include).Contains("branch"))
-            {
-                q = q.Include(a => a.Branch);
-            }
+            q = ApplyFilters(q, query);
 
             var account = await q.FirstOrDefaultAsync(a => a.Id == id);
 
