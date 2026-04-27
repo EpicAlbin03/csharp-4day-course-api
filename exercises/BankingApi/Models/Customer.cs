@@ -1,6 +1,6 @@
 namespace BankingApi.Models;
 
-public class Customer
+public class Customer : IHasUpdatedAt
 {
     public int Id { get; set; }
 

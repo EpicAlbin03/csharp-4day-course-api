@@ -1,12 +1,14 @@
 namespace BankingApi.Models;
 
-public class Branch
+public class Branch : IHasUpdatedAt
 {
     public int Id { get; set; }
 
     public string Name { get; set; } = string.Empty;
 
     public string? Address { get; set; }
+
+    public List<Account>? Accounts { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

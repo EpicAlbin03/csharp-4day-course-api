@@ -23,24 +23,7 @@ public class AppDbContext : DbContext
 
     private void StampUpdatedAt()
     {
-        // Duplicating loop for now
-        foreach (var entry in ChangeTracker.Entries<Account>())
-        {
-            if (entry.State == EntityState.Modified)
-            {
-                entry.Entity.UpdatedAt = DateTime.UtcNow;
-            }
-        }
-
-        foreach (var entry in ChangeTracker.Entries<Branch>())
-        {
-            if (entry.State == EntityState.Modified)
-            {
-                entry.Entity.UpdatedAt = DateTime.UtcNow;
-            }
-        }
-
-        foreach (var entry in ChangeTracker.Entries<Customer>())
+        foreach (var entry in ChangeTracker.Entries<IHasUpdatedAt>())
         {
             if (entry.State == EntityState.Modified)
             {
@@ -52,4 +35,5 @@ public class AppDbContext : DbContext
     public DbSet<Account> Accounts => Set<Account>();
     public DbSet<Branch> Branches => Set<Branch>();
     public DbSet<Customer> Customers => Set<Customer>();
+    public DbSet<Transaction> Transactions => Set<Transaction>();
 }
