@@ -3,9 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using BankingApi.Data;
 using BankingApi.Models;
 using BankingApi.Dtos;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BankingApi.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class TransactionsController : ControllerBase

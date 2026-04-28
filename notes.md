@@ -5,6 +5,7 @@
 - .NET migrations do not work, always check the migration is correct!
 - use in-memory db until launch, then do single migration when launching
 - no back-references or internal flags on DTOs
+- singleton: only one instance can be created
 
 ## Postgres
 
