@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace BankingApi.Models;
 
 public class Account : IHasUpdatedAt
@@ -11,6 +13,10 @@ public class Account : IHasUpdatedAt
     public int? BranchId { get; set; }
 
     public Branch? Branch { get; set; }
+
+    public string OwnerId { get; set; } = string.Empty;
+
+    [JsonIgnore] public ApplicationUser? Owner { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

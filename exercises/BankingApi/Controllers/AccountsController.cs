@@ -1,11 +1,14 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BankingApi.Data;
 using BankingApi.Models;
 using BankingApi.Dtos;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BankingApi.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class AccountsController : ControllerBase
@@ -16,6 +19,10 @@ namespace BankingApi.Controllers
         {
             _context = context;
         }
+
+        private string GetUserId() =>
+            User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? throw new InvalidOperationException("Authenticated request without a user id claim.");
 
         private static HashSet<string> ParseInclude(string? include) =>
             string.IsNullOrWhiteSpace(include)
@@ -51,7 +58,8 @@ namespace BankingApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<AccountResponse>>> GetAccounts([FromQuery] AccountQuery query)
         {
-            var q = _context.Accounts.AsQueryable();
+            var userId = GetUserId();
+            var q = _context.Accounts.Where(a => a.OwnerId == userId).AsQueryable();
             q = ApplyFilters(q, query);
 
             var list = await q.ToListAsync();
@@ -62,7 +70,8 @@ namespace BankingApi.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<AccountResponse>> GetAccount(int id, [FromQuery] AccountQuery query)
         {
-            var q = _context.Accounts.AsQueryable();
+            var userId = GetUserId();
+            var q = _context.Accounts.Where(a => a.OwnerId == userId).AsQueryable();
             q = ApplyFilters(q, query);
 
             var account = await q.FirstOrDefaultAsync(a => a.Id == id);
@@ -84,6 +93,18 @@ namespace BankingApi.Controllers
             {
                 return BadRequest();
             }
+
+            var userId = GetUserId();
+            var existing = await _context.Accounts
+                .AsNoTracking()
+                .FirstOrDefaultAsync(a => a.Id == id && a.OwnerId == userId);
+            if (existing is null)
+            {
+                return NotFound();
+            }
+
+            account.OwnerId = userId;
+            account.CreatedAt = existing.CreatedAt;
 
             _context.Entry(account).State = EntityState.Modified;
 
@@ -111,6 +132,8 @@ namespace BankingApi.Controllers
         [HttpPost]
         public async Task<ActionResult<AccountResponse>> PostAccount(Account account)
         {
+            var userId = GetUserId();
+            account.OwnerId = userId;
             account.AccountNumber = $"ACC-{_context.Accounts.Count() + 1000}";
 
             _context.Accounts.Add(account);
@@ -123,7 +146,9 @@ namespace BankingApi.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAccount(int id)
         {
-            var account = await _context.Accounts.FindAsync(id);
+            var userId = GetUserId();
+            var account = await _context.Accounts
+                .FirstOrDefaultAsync(a => a.Id == id && a.OwnerId == userId);
             if (account == null)
             {
                 return NotFound();

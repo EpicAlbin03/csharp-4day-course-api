@@ -5,6 +5,7 @@ using BankingApi.Data;
 using BankingApi.Models;
 using BankingApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
@@ -73,7 +74,10 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     // db.Database.EnsureCreated();
     db.Database.Migrate();
-    DbSeeder.Seed(db);
+    // DbSeeder.Seed(db);
+    await DbSeeder.SeedAsync(
+        db,
+        scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>());
 }
 
 // Configure the HTTP request pipeline.

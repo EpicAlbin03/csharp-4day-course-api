@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BankingApi.Data;
@@ -18,6 +19,10 @@ namespace BankingApi.Controllers
         {
             _context = context;
         }
+
+        private string GetUserId() =>
+            User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? throw new InvalidOperationException("Authenticated request without a user id claim.");
 
         private static IQueryable<Transaction> ApplyFilters(IQueryable<Transaction> q, TransactionQuery query)
         {
@@ -44,7 +49,8 @@ namespace BankingApi.Controllers
         public async Task<ActionResult<IEnumerable<TransactionResponse>>> GetTransactions(
             [FromQuery] TransactionQuery query)
         {
-            var q = _context.Transactions.AsQueryable();
+            var userId = GetUserId();
+            var q = _context.Transactions.Where(t => t.Account!.OwnerId == userId).AsQueryable();
             q = ApplyFilters(q, query);
 
             var list = await q.ToListAsync();
@@ -55,7 +61,8 @@ namespace BankingApi.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<TransactionResponse>> GetTransaction(int id, [FromQuery] TransactionQuery query)
         {
-            var q = _context.Transactions.AsQueryable();
+            var userId = GetUserId();
+            var q = _context.Transactions.Where(t => t.Account!.OwnerId == userId).AsQueryable();
             q = ApplyFilters(q, query);
 
             var transaction = await q.FirstOrDefaultAsync(t => t.Id == id);
@@ -76,6 +83,15 @@ namespace BankingApi.Controllers
             if (id != transaction.Id)
             {
                 return BadRequest();
+            }
+
+            var userId = GetUserId();
+            var existing = await _context.Transactions
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == id && t.Account!.OwnerId == userId);
+            if (existing is null)
+            {
+                return NotFound();
             }
 
             _context.Entry(transaction).State = EntityState.Modified;
@@ -104,6 +120,16 @@ namespace BankingApi.Controllers
         [HttpPost]
         public async Task<ActionResult<TransactionResponse>> PostTransaction(Transaction transaction)
         {
+            var userId = GetUserId();
+            var accountOwnedByUser = await _context.Accounts
+                .AnyAsync(a => a.Id == transaction.AccountId && a.OwnerId == userId);
+            if (!accountOwnedByUser)
+            {
+                return Problem(
+                    detail: $"AccountId {transaction.AccountId} does not exist or does not belong to you.",
+                    statusCode: StatusCodes.Status400BadRequest);
+            }
+
             _context.Transactions.Add(transaction);
             await _context.SaveChangesAsync();
 
@@ -115,7 +141,9 @@ namespace BankingApi.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTransaction(int id)
         {
-            var transaction = await _context.Transactions.FindAsync(id);
+            var userId = GetUserId();
+            var transaction = await _context.Transactions
+                .FirstOrDefaultAsync(t => t.Id == id && t.Account!.OwnerId == userId);
             if (transaction == null)
             {
                 return NotFound();
