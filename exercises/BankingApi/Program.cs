@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using System.Text;
 using BankingApi.Data;
 using BankingApi.Models;
+using BankingApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -26,6 +27,8 @@ var connectionString = builder.Configuration.GetConnectionString("AppDb")
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
+
+builder.Services.AddSingleton<JwtTokenGenerator>();
 
 // 1) Identity: user store + UserManager + PasswordHasher.
 builder.Services.AddIdentityCore<ApplicationUser>(options =>

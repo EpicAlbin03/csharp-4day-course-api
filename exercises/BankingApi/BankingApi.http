@@ -217,3 +217,25 @@ Content-Type: application/json
 }
 
 ###
+
+### ----- Authentication -----
+
+POST {{BankingApi_HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "customer2@example.com",
+  "password": "Passw0rd!"
+}
+
+###
+
+POST {{BankingApi_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "customer2@example.com",
+  "password": "Passw0rd!!!!!"
+}
+
+###
