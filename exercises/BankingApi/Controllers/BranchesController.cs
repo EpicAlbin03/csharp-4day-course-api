@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BankingApi.Data;
 using BankingApi.Models;
+using BankingApi.Dtos;
 
 namespace BankingApi.Controllers
 {
@@ -18,14 +19,15 @@ namespace BankingApi.Controllers
 
         // GET: api/Branches
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Branch>>> GetBranches()
+        public async Task<ActionResult<IEnumerable<BranchResponse>>> GetBranches()
         {
-            return await _context.Branches.ToListAsync();
+            var list = await _context.Branches.ToListAsync();
+            return list.Select(BranchResponse.FromEntity).ToList();
         }
 
         // GET: api/Branches/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Branch>> GetBranch(int id)
+        public async Task<ActionResult<BranchResponse>> GetBranch(int id)
         {
             var branch = await _context.Branches.FindAsync(id);
 
@@ -34,7 +36,7 @@ namespace BankingApi.Controllers
                 return NotFound();
             }
 
-            return branch;
+            return BranchResponse.FromEntity(branch);
         }
 
         // PUT: api/Branches/5
@@ -71,12 +73,13 @@ namespace BankingApi.Controllers
         // POST: api/Branches
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Branch>> PostBranch(Branch branch)
+        public async Task<ActionResult<BranchResponse>> PostBranch(Branch branch)
         {
             _context.Branches.Add(branch);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetBranch", new { id = branch.Id }, branch);
+            return CreatedAtAction("GetBranch", new { id = branch.Id },
+                BranchResponse.FromEntity(branch));
         }
 
         // DELETE: api/Branches/5

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BankingApi.Data;
 using BankingApi.Models;
+using BankingApi.Dtos;
 
 namespace BankingApi.Controllers
 {
@@ -18,14 +19,15 @@ namespace BankingApi.Controllers
 
         // GET: api/Customers
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Customer>>> GetCustomers()
+        public async Task<ActionResult<IEnumerable<CustomerResponse>>> GetCustomers()
         {
-            return await _context.Customers.ToListAsync();
+            var list = await _context.Customers.ToListAsync();
+            return list.Select(CustomerResponse.FromEntity).ToList();
         }
 
         // GET: api/Customers/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Customer>> GetCustomer(int id)
+        public async Task<ActionResult<CustomerResponse>> GetCustomer(int id)
         {
             var customer = await _context.Customers.FindAsync(id);
 
@@ -34,7 +36,7 @@ namespace BankingApi.Controllers
                 return NotFound();
             }
 
-            return customer;
+            return CustomerResponse.FromEntity(customer);
         }
 
         // PUT: api/Customers/5
@@ -71,12 +73,13 @@ namespace BankingApi.Controllers
         // POST: api/Customers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Customer>> PostCustomer(Customer customer)
+        public async Task<ActionResult<CustomerResponse>> PostCustomer(Customer customer)
         {
             _context.Customers.Add(customer);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetCustomer", new { id = customer.Id }, customer);
+            return CreatedAtAction("GetCustomer", new { id = customer.Id },
+                CustomerResponse.FromEntity(customer));
         }
 
         // DELETE: api/Customers/5

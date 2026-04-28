@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BankingApi.Data;
 using BankingApi.Models;
+using BankingApi.Dtos;
 
 namespace BankingApi.Controllers
 {
@@ -38,17 +39,19 @@ namespace BankingApi.Controllers
 
         // GET: api/Transactions
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Transaction>>> GetTransactions([FromQuery] TransactionQuery query)
+        public async Task<ActionResult<IEnumerable<TransactionResponse>>> GetTransactions(
+            [FromQuery] TransactionQuery query)
         {
             var q = _context.Transactions.AsQueryable();
             q = ApplyFilters(q, query);
 
-            return await q.ToListAsync();
+            var list = await q.ToListAsync();
+            return list.Select(TransactionResponse.FromEntity).ToList();
         }
 
         // GET: api/Transactions/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Transaction>> GetTransaction(int id, [FromQuery] TransactionQuery query)
+        public async Task<ActionResult<TransactionResponse>> GetTransaction(int id, [FromQuery] TransactionQuery query)
         {
             var q = _context.Transactions.AsQueryable();
             q = ApplyFilters(q, query);
@@ -60,7 +63,7 @@ namespace BankingApi.Controllers
                 return NotFound();
             }
 
-            return transaction;
+            return TransactionResponse.FromEntity(transaction);
         }
 
         // PUT: api/Transactions/5
@@ -97,12 +100,13 @@ namespace BankingApi.Controllers
         // POST: api/Transactions
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Transaction>> PostTransaction(Transaction transaction)
+        public async Task<ActionResult<TransactionResponse>> PostTransaction(Transaction transaction)
         {
             _context.Transactions.Add(transaction);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetTransaction", new { id = transaction.Id }, transaction);
+            return CreatedAtAction("GetTransaction", new { id = transaction.Id },
+                TransactionResponse.FromEntity(transaction));
         }
 
         // DELETE: api/Transactions/5

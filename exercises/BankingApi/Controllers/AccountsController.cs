@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BankingApi.Data;
 using BankingApi.Models;
+using BankingApi.Dtos;
 
 namespace BankingApi.Controllers
 {
@@ -48,17 +49,18 @@ namespace BankingApi.Controllers
 
         // GET: api/Accounts
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Account>>> GetAccounts([FromQuery] AccountQuery query)
+        public async Task<ActionResult<IEnumerable<AccountResponse>>> GetAccounts([FromQuery] AccountQuery query)
         {
             var q = _context.Accounts.AsQueryable();
             q = ApplyFilters(q, query);
 
-            return await q.ToListAsync();
+            var list = await q.ToListAsync();
+            return list.Select(AccountResponse.FromEntity).ToList();
         }
 
         // GET: api/Accounts/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Account>> GetAccount(int id, [FromQuery] AccountQuery query)
+        public async Task<ActionResult<AccountResponse>> GetAccount(int id, [FromQuery] AccountQuery query)
         {
             var q = _context.Accounts.AsQueryable();
             q = ApplyFilters(q, query);
@@ -70,7 +72,7 @@ namespace BankingApi.Controllers
                 return NotFound();
             }
 
-            return account;
+            return AccountResponse.FromEntity(account);
         }
 
         // PUT: api/Accounts/5
@@ -107,14 +109,14 @@ namespace BankingApi.Controllers
         // POST: api/Accounts
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Account>> PostAccount(Account account)
+        public async Task<ActionResult<AccountResponse>> PostAccount(Account account)
         {
             account.AccountNumber = $"ACC-{_context.Accounts.Count() + 1000}";
 
             _context.Accounts.Add(account);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetAccount", new { id = account.Id }, account);
+            return CreatedAtAction("GetAccount", new { id = account.Id }, AccountResponse.FromEntity(account));
         }
 
         // DELETE: api/Accounts/5
@@ -136,6 +138,58 @@ namespace BankingApi.Controllers
         private bool AccountExists(int id)
         {
             return _context.Accounts.Any(e => e.Id == id);
+        }
+
+        public record TransferRequest(int TargetAccountId, decimal Amount, string Description);
+
+        [HttpPost("{id}/transfer")]
+        public async Task<ActionResult<IEnumerable<TransactionResponse>>> Transfer(int id, TransferRequest request)
+        {
+            if (request.Amount <= 0)
+            {
+                return BadRequest("Amount must be positive.");
+            }
+
+            var source = await _context.Accounts
+                .Include(a => a.Transactions)
+                .FirstOrDefaultAsync(a => a.Id == id);
+            var target = await _context.Accounts.FindAsync(request.TargetAccountId);
+
+            if (source is null || target is null)
+            {
+                return NotFound();
+            }
+
+            var sourceBalance =
+                source.Transactions!.Where(t => t.Type == TransactionType.Credit).Sum(t => t.Amount)
+                - source.Transactions!.Where(t => t.Type == TransactionType.Debit).Sum(t => t.Amount);
+
+            if (sourceBalance < request.Amount)
+            {
+                return Problem(
+                    detail: "Insufficient funds.",
+                    statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            var debit = new Transaction
+            {
+                Type = TransactionType.Debit,
+                Amount = request.Amount,
+                Description = $"Transfer to {target.AccountNumber}: {request.Description}",
+                AccountId = source.Id
+            };
+            var credit = new Transaction
+            {
+                Type = TransactionType.Credit,
+                Amount = request.Amount,
+                Description = $"Transfer from {source.AccountNumber}: {request.Description}",
+                AccountId = target.Id
+            };
+
+            _context.Transactions.AddRange(debit, credit);
+            await _context.SaveChangesAsync();
+
+            return Ok(new[] { TransactionResponse.FromEntity(debit), TransactionResponse.FromEntity(credit) });
         }
     }
 }

@@ -35,7 +35,7 @@ Accept: application/json
 
 ###
 
-GET {{BankingApi_HostAddress}}/api/Accounts/1?include=transactions
+GET {{BankingApi_HostAddress}}/api/Accounts/2?include=transactions
 Accept: application/json
 
 ###
@@ -190,5 +190,30 @@ Accept: application/json
 
 GET {{BankingApi_HostAddress}}/api/Transactions/1
 Accept: application/json
+
+###
+
+### ----- Transfer -----
+
+POST {{BankingApi_HostAddress}}/api/Accounts/1/transfer
+Content-Type: application/json
+
+{
+  "targetAccountId": 2,
+  "amount": 100,
+  "description": "rent"
+}
+
+
+###
+
+POST {{BankingApi_HostAddress}}/api/Accounts/1/transfer
+Content-Type: application/json
+
+{
+  "targetAccountId": 2,
+  "amount": 99999,
+  "description": "too much"
+}
 
 ###
